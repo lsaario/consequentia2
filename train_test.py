@@ -10,8 +10,8 @@ import re
 
 relevant_ids_train   = ["A53187", "A59232", "A26578", "A01231"]
 relevant_ids_test    = ["A16218", "A45277"]
-irrelevant_ids_train = ["A30010", "A78192", "A14868", "B00372"]
-irrelevant_ids_test  = ["A62724", "A40069"]
+irrelevant_ids_train = ["A30010", "A78192", "A14868", "B00372", "A03456", "A55481", "B04151", "A79319"]
+irrelevant_ids_test  = ["A62724", "A40069", "A92785", "A25407"]
 
 def build_df(ids, relevant_ids):
     texts = []

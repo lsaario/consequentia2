@@ -33,7 +33,7 @@ for file_path in rootdir.glob('*.P5.txt'):
         texts.append(text)
         relevances.append(None)
         counter += 1
-        if counter >= 1:
+        if counter >= 100:
             break
 
 df0 = pd.DataFrame({
@@ -44,21 +44,32 @@ df0 = pd.DataFrame({
 
 df = pd.concat([train, test, df0], axis=0, ignore_index=True)
 
-vectorizer = TfidfVectorizer()
-matrix = vectorizer.fit_transform(df["text"])
+vectorizer = TfidfVectorizer(max_features=10000)
+td_idfs = vectorizer.fit_transform(df["text"])
 
-from sklearn import decomposition
-pca = decomposition.PCA(n_components=10)
-pca.fit(matrix)
-matrix = pca.transform(matrix)
+from sklearn.decomposition import LatentDirichletAllocation
+lda = LatentDirichletAllocation(n_components=100)
+topics = lda.fit_transform(td_idfs)
 
-td_idfs = pd.DataFrame(matrix, columns=pca.get_feature_names_out())
+topics_df = pd.DataFrame(topics, columns=lda.get_feature_names_out())
 #features = vectorizer.get_feature_names_out()
+
+vocab = vectorizer.get_feature_names_out()
+for i, comp in enumerate(lda.components_):
+    vocab_comp = zip(vocab, comp)
+    sorted_words = sorted(vocab_comp, key= lambda x:x[1], reverse=True)[:10]
+    print("Topic "+str(i)+": ")
+    for t in sorted_words:
+        print(t[0],end=" ")
+    print("\n")
+
+#print(topics_df.shape)
+#print(topics_df)
 
 #print(df.head)
 #print(td_idfs.head)
 
-df = pd.concat([df, td_idfs], axis=1)
+df = pd.concat([df, topics_df], axis=1)
 
 #print(df.head)
 #print(df.shape)
@@ -86,4 +97,7 @@ classifier = RandomForestClassifier()
 classifier.fit(X_train, y_train)
 X_rest = df1.drop(train_test_ids).drop(columns=["relevance"])
 print(classifier.score(X_test, y_test))
-print(classifier.predict(X_rest))
+
+predictions = classifier.predict(X_rest)
+print(predictions)
+print(X_rest[predictions == 1])
