@@ -71,11 +71,11 @@ df0 = pd.DataFrame({
 
 df = pd.concat([train, test, df0], axis=0, ignore_index=True)
 
-vectorizer = TfidfVectorizer(max_features=10000)
+vectorizer = TfidfVectorizer(max_features=100000)
 td_idfs = vectorizer.fit_transform(df["text"])
 
 from sklearn.decomposition import LatentDirichletAllocation
-lda = LatentDirichletAllocation(n_components=100)
+lda = LatentDirichletAllocation(n_components=50)
 topics = lda.fit_transform(td_idfs)
 
 topics_df = pd.DataFrame(topics, columns=lda.get_feature_names_out())
@@ -117,3 +117,5 @@ y_test = test["relevance"].astype('int')
 #print(X_train.shape)
 #print(y_train.shape)
 #print(y_train)
+
+print(df1.var() - df1.loc[train_test_ids].var())

@@ -11,8 +11,12 @@ import re
 import train_test
 
 import numpy as np
+#from sklearn.naive_bayes import MultinomialNB
+#classifier = MultinomialNB()
 from sklearn.ensemble import RandomForestClassifier
 classifier = RandomForestClassifier()
+#from sklearn.svm import LinearSVC
+#classifier = LinearSVC()
 classifier.fit(train_test.X_train, train_test.y_train)
 X_rest = train_test.df1.drop(train_test.train_test_ids).drop(columns=["relevance"])
 print(classifier.score(train_test.X_test, train_test.y_test))
