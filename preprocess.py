@@ -8,6 +8,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from unidecode import unidecode
 
 nltk.download('stopwords')
 nltk.download('punkt') # Download the 'punkt' resource
@@ -29,8 +30,8 @@ def preprocess(dir):
         elem = root.find('{http://www.tei-c.org/ns/1.0}text')
         text = ET.tostring(elem, encoding='unicode', method='text')
 
-        # convert to lower case
-        text = text.lower()
+        # unidecode and convert to lower case
+        text = unidecode(text).lower()
 
         # remove redundant spacing
         text = re.sub(r"[\r\n\t\s]+", " ", text)
@@ -41,8 +42,8 @@ def preprocess(dir):
         # tokenize
         words = text.split()
 
-        # remove stopwords
-        words = [word for word in words if word not in stop_words]
+        # remove stopwords and numerals
+        words = [word for word in words if word not in stop_words and not re.match(r"\d+", word)]
 
         # lemmatize
         lemmas = [lemmatizer.lemmatize(word) for word in words]
