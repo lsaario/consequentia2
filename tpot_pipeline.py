@@ -14,7 +14,7 @@ features = tpot_data.drop('target', axis=1)
 training_features, testing_features, training_target, testing_target = \
             train_test_split(features, tpot_data['target'], random_state=42)
 
-# Average CV score on the training set was: 1.0
+# Average CV score on the training set was: 0.8333333333333334
 exported_pipeline = make_pipeline(
     make_union(
         FunctionTransformer(copy),
