@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.svm import LinearSVC
+from sklearn.naive_bayes import MultinomialNB
 
 # NOTE: Make sure that the outcome column is labeled 'target' in the data file
 tpot_data = pd.read_csv('PATH/TO/DATA/FILE', sep='COLUMN_SEPARATOR', dtype=np.float64)
@@ -10,7 +10,7 @@ training_features, testing_features, training_target, testing_target = \
             train_test_split(features, tpot_data['target'], random_state=42)
 
 # Average CV score on the training set was: 1.0
-exported_pipeline = LinearSVC(C=25.0, dual=False, loss="squared_hinge", penalty="l2", tol=1e-05)
+exported_pipeline = MultinomialNB(alpha=10.0, fit_prior=False)
 # Fix random state in exported estimator
 if hasattr(exported_pipeline, 'random_state'):
     setattr(exported_pipeline, 'random_state', 42)

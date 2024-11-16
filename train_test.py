@@ -60,8 +60,8 @@ for file_path in rootdir.glob('*.P5.txt'):
         texts.append(text)
         relevances.append(None)
         counter += 1
-        if counter >= 100:
-            break
+        #if counter >= 1000:
+            #break
 
 df0 = pd.DataFrame({
     "id" : ids,
@@ -71,40 +71,59 @@ df0 = pd.DataFrame({
 
 df = pd.concat([train, test, df0], axis=0, ignore_index=True)
 
-vectorizer = TfidfVectorizer(max_features=100000)
-td_idfs = vectorizer.fit_transform(df["text"])
+def match_bigram(word1, word2, qualifier):
+    consequence = "(con)?seq.*"
+    condition1 = re.match(qualifier, word1) and re.match(consequence, word2)
+    condition2 = re.match(qualifier, word2) and re.match(consequence, word1)
+    return not (condition1 or condition2)
 
-from sklearn.decomposition import LatentDirichletAllocation
-lda = LatentDirichletAllocation(n_components=50)
-topics = lda.fit_transform(td_idfs)
+def select_formal(word1, word2):
+    return match_bigram(word1, word2, "form.*")
 
-topics_df = pd.DataFrame(topics, columns=lda.get_feature_names_out())
-#features = vectorizer.get_feature_names_out()
+def select_material(word1, word2):
+    return match_bigram(word1, word2, "mater.*")
 
-vocab = vectorizer.get_feature_names_out()
-for i, comp in enumerate(lda.components_):
-    vocab_comp = zip(vocab, comp)
-    sorted_words = sorted(vocab_comp, key= lambda x:x[1], reverse=True)[:10]
-    print("Topic "+str(i)+": ")
-    for t in sorted_words:
-        print(t[0],end=" ")
-    print("\n")
+def select_logical(word1, word2):
+    return match_bigram(word1, word2, "logic.*")
 
-#print(topics_df.shape)
-#print(topics_df)
+import nltk
+from nltk import BigramCollocationFinder
+#from nltk.collocations import *
+bigram_measures = nltk.collocations.BigramAssocMeasures()
+
+def filter_count(row, fn):
+    finder = BigramCollocationFinder.from_words(row["text"].split(), window_size = 5)
+    finder.apply_ngram_filter(fn)
+    #print(finder.score_ngrams(bigram_measures.raw_freq))
+    bigram_counts = finder.ngram_fd.items()
+    #print(bigram_counts)
+    counter = 0
+    for bigram_count in bigram_counts:
+        counter += bigram_count[1]
+    return counter
+
+def colloc_freq_formal(row):
+    return filter_count(row, select_formal)
+
+def colloc_freq_material(row):
+    return filter_count(row, select_material)
+
+def colloc_freq_logical(row):
+    return filter_count(row, select_logical)
+
+#df["colloq_freq"] = df.apply(get_colloc, axis=1)
 
 #print(df.head)
-#print(td_idfs.head)
+#print(df["colloq_freq"][0].nbest(bigram_measures.raw_freq, 5))
 
-df = pd.concat([df, topics_df], axis=1)
-
-#print(df.head)
-#print(df.shape)
+df["formal_consequence"] = df.apply(colloc_freq_formal, axis=1)
+df["material_consequence"] = df.apply(colloc_freq_material, axis=1)
+df["logical_consequence"] = df.apply(colloc_freq_logical, axis=1)
 
 df1 = df.set_index("id").drop(columns=["text"])
 
-#print(df1.head)
-#print(df1.shape)
+print(df1.head)
+print(df1.shape)
 
 train = df1.loc[relevant_ids_train + irrelevant_ids_train]
 X_train = train.drop(columns=["relevance"])
@@ -118,4 +137,4 @@ y_test = test["relevance"].astype('int')
 #print(y_train.shape)
 #print(y_train)
 
-print(df1.var() - df1.loc[train_test_ids].var())
+#print(df1.var() - df1.loc[train_test_ids].var())

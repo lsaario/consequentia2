@@ -11,16 +11,19 @@ import re
 import train_test
 
 import numpy as np
-#from sklearn.naive_bayes import MultinomialNB
-#classifier = MultinomialNB()
-from sklearn.ensemble import RandomForestClassifier
-classifier = RandomForestClassifier()
+from sklearn.naive_bayes import MultinomialNB
+classifier = MultinomialNB()
+#from sklearn.ensemble import RandomForestClassifier
+#classifier = RandomForestClassifier()
 #from sklearn.svm import LinearSVC
 #classifier = LinearSVC()
 classifier.fit(train_test.X_train, train_test.y_train)
-X_rest = train_test.df1.drop(train_test.train_test_ids).drop(columns=["relevance"])
 print(classifier.score(train_test.X_test, train_test.y_test))
 
-predictions = classifier.predict(X_rest)
-print(predictions)
-print(X_rest[predictions == 1])
+#X_rest = train_test.df1.drop(train_test.train_test_ids).drop(columns=["relevance"])
+X = train_test.df1.drop(columns=["relevance"])
+train_test.df1["prediction"] = classifier.predict(X)
+
+train_test.df1.to_csv("predictions.csv")
+#print(predictions)
+#print(X_rest[predictions == 1])
